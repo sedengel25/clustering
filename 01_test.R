@@ -3,9 +3,12 @@ library(tidyverse)
 library(dbscan)
 library(reticulate)
 library(plotly)
-#install.packages("uwot")
+library(trimap)
 library(uwot)
+library(devtools)
+remotes::install_github("scfurl/m3addon")
 reticulate::py_config()
+
 
 use_virtualenv("r-reticulate", required = TRUE)
 
@@ -29,76 +32,47 @@ pacmap.emb <- pacmap.emb$fit_transform(X = mat.org, init = "pca")
 
 umap.res <- umap(mat.org, ret_model = TRUE, n_components = n.dim, init = "random")
 umap.emb <- umap.res$embedding
+
 df.org <- as.data.frame(mat.org)
 df.pacmap <- as.data.frame(pacmap.emb)
 df.umap <- as.data.frame(umap.emb)
-
-
 
 df.org$label_true <- Tetra$Cls %>% as.factor()
 df.pacmap$label_true <- Tetra$Cls %>% as.factor()
 df.umap$label_true <- Tetra$Cls %>% as.factor()
 
-if(ncol(mat.org) == 2){
-  colnames(df.org) <- c("X", "Y", "label")
-  colnames(df.pacmap) <- c("X", "Y", "label")
-  colnames(df.umap) <- c("X", "Y", "label")
-  
-  ggplot(data = df.org) +
-    geom_point(aes(x = X, y = Y, color = label))
-  
-  ggplot(data = df.pacmap) +
-    geom_point(aes(x = X, y = Y, color = label))
-  
-  ggplot(data = df.umap) +
-    geom_point(aes(x = X, y = Y, color = label))
-  
-} else if(ncol(mat.org) == 3) {
-  colnames(df.org) <- c("X", "Y", "Z", "label")
-  colnames(df.pacmap) <- c("X", "Y", "Z", "label")
-  colnames(df.umap) <- c("X", "Y", "Z", "label")
-  
-  p.org <- plot_ly(
-    data    = df.org,
-    x       = ~X,
-    y       = ~Y,
-    z       = ~Z,
-    color   = ~label,              
-    # colors  = RColorBrewer::brewer.pal(n = length(levels(df.org$label)), name = "Set1"),
-    type    = "scatter3d",
-    mode    = "markers",
-    marker  = list(size = 4)
-  )
-  print(p.org)
-  p.pacmap <- plot_ly(
-    data    = df.pacmap,
-    x       = ~X,
-    y       = ~Y,
-    z       = ~Z,
-    color   = ~label,              
-    # colors  = RColorBrewer::brewer.pal(n = length(levels(df.org$label)), name = "Set1"),
-    type    = "scatter3d",
-    mode    = "markers",
-    marker  = list(size = 4)
-  )
-  
-  print(p.pacmap)
-  
-  p.umap <- plot_ly(
-    data    = df.umap,
-    x       = ~X,
-    y       = ~Y,
-    z       = ~Z,
-    color   = ~label,              
-    # colors  = RColorBrewer::brewer.pal(n = length(levels(df.org$label)), name = "Set1"),
-    type    = "scatter3d",
-    mode    = "markers",
-    marker  = list(size = 4)
-  )
-  
-  print(p.umap)
+list.dfs <- list(
+  Original = df.org,
+  PaCMAP   = df.pacmap,
+  UMAP     = df.umap
+)
+
+
+
+plot_fun <- function(df, name) {
+  if (ncol(df) == 3) {
+    colnames(df) <- c("X", "Y", "label_true")
+    
+    ggplot(df, aes(x = X, y = Y, color = label_true)) +
+      geom_point() +
+      ggtitle(name)
+    
+  } else if(ncol(df) == 4) {
+    colnames(df) <- c("X", "Y", "Z", "label_true")
+    
+    plot_ly(
+      data   = df,
+      x      = ~X, y = ~Y, z = ~Z,
+      color  = ~label_true,
+      type   = "scatter3d",
+      mode   = "markers",
+      marker = list(size = 4) 
+    ) %>%
+      layout(title = name)
+  }
 }
 
+plots <- imap(list.dfs, plot_fun)
 
-
+plots$PaCMAP
 
