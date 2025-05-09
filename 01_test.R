@@ -3,10 +3,9 @@ library(tidyverse)
 library(dbscan)
 library(reticulate)
 library(plotly)
-library(trimap)
 library(uwot)
 library(devtools)
-remotes::install_github("scfurl/m3addon")
+
 reticulate::py_config()
 
 
@@ -15,11 +14,12 @@ use_virtualenv("r-reticulate", required = TRUE)
 hdb   <- import("hdbscan")
 np    <- import("numpy")
 pacmap <-  import("pacmap")
-char.dataset <- "Tetra"
+trimap <- import("trimap")
+char.dataset <- "Lsun3D"
 data(char.dataset)
 
 
-mat.org <- Tetra$Data
+mat.org <- Lsun3D$Data
 
 
 n.dim <- ncol(mat.org)
@@ -28,23 +28,26 @@ pacmap.emb <- pacmap$PaCMAP(n_components = n.dim %>% as.integer,
                            MN_ratio = 0.5, 
                            FP_ratio = 0.2)
 pacmap.emb <- pacmap.emb$fit_transform(X = mat.org, init = "pca")
-
-
+trimap.mapper <- trimap$TRIMAP(n_dims = n.dim)
+trimap.emb <-trimap.mapper$fit_transform(mat.org) 
 umap.res <- umap(mat.org, ret_model = TRUE, n_components = n.dim, init = "random")
 umap.emb <- umap.res$embedding
 
 df.org <- as.data.frame(mat.org)
 df.pacmap <- as.data.frame(pacmap.emb)
 df.umap <- as.data.frame(umap.emb)
+df.trimap <- as.data.frame(trimap.emb)
 
-df.org$label_true <- Tetra$Cls %>% as.factor()
-df.pacmap$label_true <- Tetra$Cls %>% as.factor()
-df.umap$label_true <- Tetra$Cls %>% as.factor()
+df.org$label_true <- Lsun3D$Cls %>% as.factor()
+df.pacmap$label_true <- Lsun3D$Cls %>% as.factor()
+df.umap$label_true <- Lsun3D$Cls %>% as.factor()
+df.trimap$label_true <- Lsun3D$Cls %>% as.factor()
 
 list.dfs <- list(
   Original = df.org,
   PaCMAP   = df.pacmap,
-  UMAP     = df.umap
+  UMAP     = df.umap,
+  TriMap = df.trimap
 )
 
 
@@ -74,5 +77,7 @@ plot_fun <- function(df, name) {
 
 plots <- imap(list.dfs, plot_fun)
 
+plots$Original
 plots$PaCMAP
-
+plots$UMAP
+plots$TriMap
