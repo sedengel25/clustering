@@ -20,31 +20,36 @@ data(char.dataset)
 
 
 mat.org <- Hepta$Data
-
-
 n.dim <- ncol(mat.org)
-pacmap.emb <- pacmap$PaCMAP(n_components = n.dim %>% as.integer, 
-                           n_neighbors = 10L, 
-                           MN_ratio = 0.5, 
-                           FP_ratio = 0.2)
-pacmap.emb <- pacmap.emb$fit_transform(X = mat.org, init = "pca")
+df.org <- as.tibble(mat.org)
+mins   <- map_dbl(df.org, min)
+maxs   <- map_dbl(df.org, max)
+n.noise <- 50
+df.noise <- map2_dfc(mins, maxs, ~ runif(n.noise, .x, .y))
+df.noise$label_true <- 0L %>% as.factor()
+df.org$label_true <-   Hepta$Cls %>% as.factor()
+df.final <- rbind(df.org, df.noise)
+mat.final <- df.final[,1:n.dim] %>% as.matrix()
+
+
+pacmap.emb <- pacmap$PaCMAP(n_components = n.dim %>% as.integer)
+pacmap.emb <- pacmap.emb$fit_transform(X = mat.final, init = "random")
 trimap.mapper <- trimap$TRIMAP(n_dims = n.dim)
-trimap.emb <-trimap.mapper$fit_transform(mat.org) 
-umap.res <- umap(mat.org, ret_model = TRUE, n_components = n.dim, init = "random")
+trimap.emb <-trimap.mapper$fit_transform(mat.final) 
+umap.res <- umap(mat.final, ret_model = TRUE, n_components = n.dim, init = "random")
 umap.emb <- umap.res$embedding
 
-df.org <- as.data.frame(mat.org)
-df.pacmap <- as.data.frame(pacmap.emb)
-df.umap <- as.data.frame(umap.emb)
-df.trimap <- as.data.frame(trimap.emb)
+df.pacmap <- as.tibble(pacmap.emb)
+df.umap <- as.tibble(umap.emb)
+df.trimap <- as.tibble(trimap.emb)
 
-df.org$label_true <- Hepta$Cls %>% as.factor()
-df.pacmap$label_true <- Hepta$Cls %>% as.factor()
-df.umap$label_true <- Hepta$Cls %>% as.factor()
-df.trimap$label_true <- Hepta$Cls %>% as.factor()
+
+df.pacmap$label_true <- df.final$label_true 
+df.umap$label_true <- df.final$label_true 
+df.trimap$label_true <- df.final$label_true 
 
 list.dfs <- list(
-  Original = df.org,
+  Original = df.final,
   PaCMAP   = df.pacmap,
   UMAP     = df.umap,
   TriMap = df.trimap
