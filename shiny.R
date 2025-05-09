@@ -111,16 +111,16 @@ server <- function(input, output, session) {
   }
   
   output$originalPlot <- renderPlotly({
-    render_dynamic(compute_embed('original'), "Original + Noise")
+    render_dynamic(compute_embed('original'), "Original")
   })
   output$umapPlot <- renderPlotly({
-    render_dynamic(compute_embed('umap'), "UMAP + Noise")
+    render_dynamic(compute_embed('umap'), "UMAP")
   })
   output$pacmapPlot <- renderPlotly({
-    render_dynamic(compute_embed('pacmap'), "PaCMAP + Noise")
+    render_dynamic(compute_embed('pacmap'), "PaCMAP")
   })
   output$trimapPlot <- renderPlotly({
-    render_dynamic(compute_embed('trimap'), "TriMap + Noise")
+    render_dynamic(compute_embed('trimap'), "TriMap")
   })
 }
 
