@@ -15,11 +15,11 @@ hdb   <- import("hdbscan")
 np    <- import("numpy")
 pacmap <-  import("pacmap")
 trimap <- import("trimap")
-char.dataset <- "Lsun3D"
+char.dataset <- "Hepta"
 data(char.dataset)
 
 
-mat.org <- Lsun3D$Data
+mat.org <- Hepta$Data
 
 
 n.dim <- ncol(mat.org)
@@ -38,10 +38,10 @@ df.pacmap <- as.data.frame(pacmap.emb)
 df.umap <- as.data.frame(umap.emb)
 df.trimap <- as.data.frame(trimap.emb)
 
-df.org$label_true <- Lsun3D$Cls %>% as.factor()
-df.pacmap$label_true <- Lsun3D$Cls %>% as.factor()
-df.umap$label_true <- Lsun3D$Cls %>% as.factor()
-df.trimap$label_true <- Lsun3D$Cls %>% as.factor()
+df.org$label_true <- Hepta$Cls %>% as.factor()
+df.pacmap$label_true <- Hepta$Cls %>% as.factor()
+df.umap$label_true <- Hepta$Cls %>% as.factor()
+df.trimap$label_true <- Hepta$Cls %>% as.factor()
 
 list.dfs <- list(
   Original = df.org,
