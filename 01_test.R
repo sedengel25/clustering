@@ -16,7 +16,7 @@ hdb   <- import("hdbscan")
 np    <- import("numpy")
 pacmap <-  import("pacmap")
 trimap <- import("trimap")
-
+sklearn <- import("sklearn.manifold")
 
 py_hdbscan <- function(df, hdb, int.cluster.size, int.sample) {
   mat <- as.matrix(df)
@@ -45,10 +45,10 @@ load_data_obj <- function(source, is_rds = FALSE) {
   return(data_obj)
 }
 
-char.dataset <- "Tetra"
+char.dataset <- "EngyTime"
 data.obj  <- load_data_obj(char.dataset, is_rds = FALSE)
-rds.path  <-  here("data", "processed", "variations", "skewed.rds")
-#data.obj  <- load_data_obj(rds.path, is_rds = TRUE)
+rds.path  <-  here("data", "processed", "worms", "2d.rds")
+data.obj  <- load_data_obj(rds.path, is_rds = TRUE)
 mat.org <- data.obj$Data
 cls     <- data.obj$Cls
 
@@ -66,26 +66,37 @@ mat.final <- df.final[,1:n.dim] %>% as.matrix()
 
 
 pacmap.emb <- pacmap$PaCMAP(n_components = n.dim %>% as.integer)
-pacmap.emb <- pacmap.emb$fit_transform(X = mat.final, init = "random")
-trimap.mapper <- trimap$TRIMAP(n_dims = n.dim)
+pacmap.emb <- pacmap.emb$fit_transform(X = mat.final, init = "pca")
+trimap.mapper <- trimap$TRIMAP(n_dims = n.dim, apply_pca = TRUE)
 trimap.emb <-trimap.mapper$fit_transform(mat.final) 
-umap.res <- umap(mat.final, ret_model = TRUE, n_components = n.dim, init = "random")
+umap.res <- umap(mat.final, ret_model = TRUE, n_components = n.dim, init = "pca")
 umap.emb <- umap.res$embedding
+tsne.mapper <- sklearn$TSNE(n_components = n.dim %>% as.integer,
+                             perplexity   = 30.0,
+                             learning_rate= 200.0,
+                             init = "pca",
+                             n_iter       = as.integer(1000),
+                             random_state = as.integer(42L))
+
+tsne.emb <- tsne.mapper$fit_transform(mat.final)
+
+
 
 df.pacmap <- as.tibble(pacmap.emb)
 df.umap <- as.tibble(umap.emb)
 df.trimap <- as.tibble(trimap.emb)
-
+df.tsne <- as.tibble(tsne.emb)
 
 df.pacmap$label_true <- df.final$label_true %>% as.factor()
 df.umap$label_true <- df.final$label_true %>% as.factor()
 df.trimap$label_true <- df.final$label_true %>% as.factor()
-
+df.tsne$label_true <- df.final$label_true %>% as.factor()
 list.dfs <- list(
   Original = df.final,
   PaCMAP   = df.pacmap,
   UMAP     = df.umap,
-  TriMap = df.trimap
+  TriMap = df.trimap,
+  tSNE = df.tsne
 )
 
 
@@ -126,7 +137,8 @@ list.dfs <- list(
   Original = df.final,
   PaCMAP   = df.pacmap,
   UMAP     = df.umap,
-  TriMap = df.trimap
+  TriMap = df.trimap,
+  tSNE = df.tsne
 )
 
 plot_fun <- function(df, name) {
@@ -169,7 +181,7 @@ plots$UMAP
 #length(unique((df.umap$label_pred)))
 plots$TriMap
 #length(unique((df.trimap$label_pred)))
-
+plots$tSNE
 
 # plotly_fun <- function(df, name) {
 #   colnames(df)[1:2] <- c("X", "Y")
