@@ -47,7 +47,7 @@ load_data_obj <- function(source, is_rds = FALSE) {
 
 char.dataset <- "EngyTime"
 data.obj  <- load_data_obj(char.dataset, is_rds = FALSE)
-rds.path  <-  here("data", "processed", "worms", "2d.rds")
+rds.path  <-  here("data", "processed", "worms", "worms_noise32_d2_cl21_1.rds")
 data.obj  <- load_data_obj(rds.path, is_rds = TRUE)
 mat.org <- data.obj$Data
 cls     <- data.obj$Cls

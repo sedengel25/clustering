@@ -3,11 +3,12 @@ library(here)
 
 path.base <- here("data", "raw", "worms")
 
-file.coord <- here(path.base, "worms_2d.txt")
-file.label <- here(path.base, "worms_2d-gt.pa")
+filename <- "worms_noise32_d2_cl21_1"
+file.coord <- here(path.base, paste0(filename, ".txt"))
+file.label <- here(path.base, paste0(filename, "-labels.txt"))
 tibble.data <- read_delim(file.coord, delim = " ", col_names = FALSE)
+labels <- read_delim(file.label, delim = " ", col_names = FALSE)[,1] %>% pull(X1)
 
-char.labels <- read_lines(file = file.label, skip = 4)
 
 
 
@@ -17,5 +18,5 @@ if(!dir.exists(path.dir.processed.data)){
 }
 
 list.data <- list(Data = tibble.data, 
-                  Cls = as.integer(char.labels))
-write_rds(x = list.data, file = here(path.dir.processed.data, "2d.rds"))
+                  Cls = as.integer(labels))
+write_rds(x = list.data, file = here(path.dir.processed.data, paste0(filename, ".rds")))
