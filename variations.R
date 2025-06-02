@@ -1,8 +1,8 @@
 library(tidyverse)
 library(here)
 
-url.data <- "https://cs.uef.fi/sipu/datasets/skewed.txt"
-url.labels <- "https://cs.uef.fi/sipu/datasets/skewed.pa"
+url.data <- "https://cs.uef.fi/sipu/datasets/overlap.txt"
+url.labels <- "https://cs.uef.fi/sipu/datasets/overlap.pa"
 data <- read_table(
   file    = url.data,
   col_names = c("x", "y")    
@@ -17,4 +17,4 @@ if(!dir.exists(path.dir.processed.data)){
 labels <- read_lines(file = url.labels, skip = 4)
 list.data <- list(Data = data, 
                   Cls = as.integer(labels))
-write_rds(x = list.data, file = here(path.dir.processed.data, "skewed.rds"))
+write_rds(x = list.data, file = here(path.dir.processed.data, "overlap.rds"))

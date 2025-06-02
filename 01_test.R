@@ -7,6 +7,7 @@ library(uwot)
 library(devtools)
 library(here)
 library(aricode)
+library(scales)
 reticulate::py_config()
 
 
@@ -44,10 +45,11 @@ load_data_obj <- function(source, is_rds = FALSE) {
             all(c("Data","Cls") %in% names(data_obj)))
   return(data_obj)
 }
+### ----------------------------------------------------------------------------
+#char.dataset <- "EngyTime"
+#data.obj  <- load_data_obj(char.dataset, is_rds = FALSE)
 
-char.dataset <- "EngyTime"
-data.obj  <- load_data_obj(char.dataset, is_rds = FALSE)
-rds.path  <-  here("data", "processed", "worms", "worms_noise32_d2_cl21_1.rds")
+rds.path  <-  here("data", "processed", "s-originals", "s3.rds")
 data.obj  <- load_data_obj(rds.path, is_rds = TRUE)
 mat.org <- data.obj$Data
 cls     <- data.obj$Cls
@@ -201,3 +203,50 @@ plots$tSNE
 # 
 # interactive_plots <- imap(list.dfs, plotly_fun)
 # interactive_plots$Original
+
+
+
+
+
+dist.org <- dist(mat.final) %>% as.matrix()
+dist.emb <- dist(df.pacmap[, c("V1", "V2")] %>% as.matrix()) %>% as.matrix()
+
+d.org.vec <- dist.org[lower.tri(dist.org)]
+d.emb.vec <- dist.emb[lower.tri(dist.emb)]
+d.org.vec <- rescale(d.org.vec, to = c(0, 1))
+d.emb.vec <- rescale(d.emb.vec, to = c(0, 1))
+rm(dist.org)
+rm(dist.emb)
+gc()
+
+
+df.distances <- bind_rows(
+  data.frame(dist = d.org.vec, type = "Original distances"),
+  data.frame(dist = d.emb.vec, type = "PaCMAP distances")
+)
+
+rm(d.org.vec)
+rm(d.emb.vec)
+gc()
+
+
+ggplot(df.distances, aes(x = dist, fill = type, color = type)) +
+  geom_density(alpha = 0.3) +
+  labs(x = "Distance", y = "Density") +
+  theme_bw() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 18L),
+    axis.text = element_text(size = 16L),
+    axis.title = element_text(size = 18L),
+    strip.text = element_text(size = 18L)
+  )
+
+
+
+
+
+
